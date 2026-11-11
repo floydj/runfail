@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require "rails_test_rerun"
+require "runfail"
 
 exit RailsTestRerun::CLI.new.run(ARGV)

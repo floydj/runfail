@@ -8,7 +8,7 @@ class PackagingTest < Minitest::Test
     gem_root = File.expand_path("..", __dir__)
     Dir.mktmpdir("rails-test-rerun-install-") do |destination|
       artifact = File.join(destination, "utility.gem")
-      output, error, status = Open3.capture3(RbConfig.ruby, "-S", "gem", "build", "rails-test-rerun.gemspec",
+      output, error, status = Open3.capture3(RbConfig.ruby, "-S", "gem", "build", "runfail.gemspec",
                                             "--output", artifact, chdir: gem_root)
       assert status.success?, output + error
       contents = Gem::Package.new(artifact).contents

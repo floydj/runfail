@@ -1,4 +1,4 @@
-require "rails_test_rerun"
+require "runfail"
 require "rails_test_rerun/reporter"
 
 module Minitest

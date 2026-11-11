@@ -1,5 +1,5 @@
 Gem::Specification.new do |spec|
-  spec.name = "rails-test-rerun"
+  spec.name = "runfail"
   spec.version = "0.2.0"
   spec.summary = "Automatically record Rails test results and rerun failures with runfail"
   spec.authors = ["TeamSite contributors"]

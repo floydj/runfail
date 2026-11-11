@@ -4,7 +4,7 @@ Automatically record Rails/Minitest results and use `runfail` to rerun every
 failed or errored test, without rerunning passing or skipped tests. Developed in
 TeamSite; maintained independently for use in other Rails repositories.
 Originally tracked in [floydj/teamsite#985](https://github.com/floydj/teamsite/issues/985).
-The gem name remains `rails-test-rerun`; its executable is `runfail`.
+The gem and its executable are both named `runfail`.
 
 ## Install
 
@@ -16,15 +16,15 @@ Clone this repository, then build and install the executable:
 ```sh
 git clone https://github.com/floydj/runfail.git
 cd runfail
-gem build rails-test-rerun.gemspec --output /tmp/rails-test-rerun-0.2.0.gem
-gem install --local /tmp/rails-test-rerun-0.2.0.gem --no-document
+gem build runfail.gemspec --output /tmp/runfail-0.2.0.gem
+gem install --local /tmp/runfail-0.2.0.gem --no-document
 ```
 
 Add the plugin to each target application's Gemfile:
 
 ```ruby
 group :test do
-  gem "rails-test-rerun", git: "https://github.com/floydj/runfail.git", require: "rails_test_rerun/plugin"
+  gem "runfail", git: "https://github.com/floydj/runfail.git", require: "runfail/plugin"
 end
 ```
 
@@ -98,7 +98,8 @@ run; subsequent reruns include only its remaining failures. A completed passing
 run clears earlier failures, including when some tests were skipped.
 Interrupted or fail-fast automatic runs are not published as completed captures.
 
-Private local state lives in `tmp/rails-test-rerun/`:
+Private local state lives in `tmp/rails-test-rerun/`. This existing path is
+retained so renaming the gem does not discard earlier captures:
 
 - `latest.log`: combined output from the latest command-managed run, if any.
   Plain plugin-recorded runs do not save a terminal transcript.
@@ -126,7 +127,7 @@ From this repository, install the standalone development dependencies and run:
 bundle install
 bundle exec ruby -I test test/all_test.rb
 bundle exec rubocop
-gem build rails-test-rerun.gemspec
+gem build runfail.gemspec
 ```
 
 The GitHub Actions workflow runs the same tests and linter, and builds the gem.

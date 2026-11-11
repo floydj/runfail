@@ -4,7 +4,7 @@ require "open3"
 require "stringio"
 require "tmpdir"
 require "timeout"
-require_relative "../lib/rails_test_rerun"
+require_relative "../lib/runfail"
 
 module FixtureProject
   def with_project
@@ -84,7 +84,7 @@ module FixtureProject
   end
 
   def enable_plugin(root, path: nil)
-    dependency = "gem \"rails-test-rerun\", require: \"rails_test_rerun/plugin\""
+    dependency = "gem \"runfail\", require: \"runfail/plugin\""
     dependency += ", path: #{path.inspect}" if path
     File.open(File.join(root, "Gemfile"), "a") { |file| file.puts "group :test do\n  #{dependency}\nend" }
     script = File.read(File.join(root, "bin/rails")).sub("APP_PATH", "require \"bundler/setup\"\nAPP_PATH")
