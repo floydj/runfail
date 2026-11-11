@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "rails_test_rerun"
+
+exit RailsTestRerun::CLI.new.run(ARGV)

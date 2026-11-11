@@ -1,0 +1,28 @@
+AllCops:
+  TargetRubyVersion: 3.2
+  DisabledByDefault: true
+  SuggestExtensions: false
+  Exclude:
+    - "vendor/**/*"
+    - "tmp/**/*"
+
+Layout/IndentationWidth:
+  Enabled: true
+
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: indented_internal_methods
+
+Layout/EndAlignment:
+  Enabled: true
+  EnforcedStyleAlignWith: keyword
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Layout/TrailingEmptyLines:
+  Enabled: true
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
