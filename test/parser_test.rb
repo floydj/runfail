@@ -2,7 +2,7 @@ require "test_helper"
 
 class ParserTest < Minitest::Test
   def parse(text, code = 1)
-    RailsTestRerun::Parser.new.parse(text, exit_code: code).fetch("selectors")
+    Runfail::Parser.new.parse(text, exit_code: code).fetch("selectors")
   end
 
   def test_inline_failures_errors_and_verbose_skips
@@ -100,7 +100,7 @@ class ParserTest < Minitest::Test
       "1 runs, 1 assertions, 1 failures, 0 errors, 0 skips\n" * 2,
       "Failure:\nbin/rails test test/a_test.rb:3\n1 runs, 1 assertions, 0 failures, 1 errors, 0 skips\n"
     ].each do |text|
-      assert_raises(RailsTestRerun::Error) { parse(text) }
+      assert_raises(Runfail::Error) { parse(text) }
     end
   end
 end

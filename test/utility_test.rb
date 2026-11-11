@@ -31,7 +31,7 @@ class UtilityTest < Minitest::Test
         code, output, error = invoke(root, "--sequential", "--", *arguments)
         assert_equal 1, code, error + output
         assert_empty error
-        assert_equal arguments, RailsTestRerun::State.new(root).read.fetch("argv")
+        assert_equal arguments, Runfail::State.new(root).read.fetch("argv")
         assert_equal 4, executed(root).length
         assert_equal ["1"], executed(root).map { |row| row.fetch("workers") }.uniq
         assert_equal "2", ENV["PARALLEL_WORKERS"]
@@ -41,24 +41,24 @@ class UtilityTest < Minitest::Test
 
   def test_runner_grammar_and_exact_rerun_argv
     %w[test test:all test:system test:models test:mailboxes].each do |task|
-      command = RailsTestRerun::Command.new(["bundle", "exec", "rails", task, "-n", "old_filter", "-f", "--seed", "42"])
+      command = Runfail::Command.new(["bundle", "exec", "rails", task, "-n", "old_filter", "-f", "--seed", "42"])
       assert_equal ["bundle", "exec", "rails", "test", "test/first_test.rb:4", "-v", "-d"], command.rerun(["test/first_test.rb:4"])
     end
-    assert_raises(RailsTestRerun::Error) { RailsTestRerun::Command.new(%w[bin/rails db:drop]) }
+    assert_raises(Runfail::Error) { Runfail::Command.new(%w[bin/rails db:drop]) }
   end
 
   def test_state_errors_isolation_locking_and_source_changes
     with_project do |root|
-      state = RailsTestRerun::State.new(root)
-      assert_raises(RailsTestRerun::Error) { state.read }
+      state = Runfail::State.new(root)
+      assert_raises(Runfail::Error) { state.read }
       File.write(File.join(state.directory, "latest.json"), "{bad json")
-      assert_raises(RailsTestRerun::Error) { state.read }
+      assert_raises(Runfail::Error) { state.read }
       state.write("status" => "running")
-      assert_raises(RailsTestRerun::Error) { state.read }
+      assert_raises(Runfail::Error) { state.read }
       state.write("status" => "complete", "argv" => [], "selectors" => "not an array")
-      assert_raises(RailsTestRerun::Error) { state.read }
+      assert_raises(Runfail::Error) { state.read }
       state.synchronize do
-        assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(root).synchronize { } }
+        assert_raises(Runfail::Error) { Runfail::State.new(root).synchronize { } }
       end
       selectors = ["test/first_test.rb:4"]
       state.write("status" => "complete", "argv" => %w[bin/rails test], "selectors" => selectors,
@@ -68,21 +68,21 @@ class UtilityTest < Minitest::Test
       assert_equal 1, code
       assert_includes error, "changed"
       with_project do |other_root|
-        assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(other_root).read }
+        assert_raises(Runfail::Error) { Runfail::State.new(other_root).read }
       end
     end
   end
 
   def test_selector_validation_rejects_missing_external_and_symlinked_paths
     with_project do |root|
-      state = RailsTestRerun::State.new(root)
+      state = Runfail::State.new(root)
       ["test/missing_test.rb:3", "../other_test.rb:3", "test/first_test.rb:99999", "test/first_test.rb:0",
        "test/first_test.rb:4; touch unwanted", "Gemfile:1"].each do |selector|
-        assert_raises(RailsTestRerun::Error) { state.fingerprints([selector]) }
+        assert_raises(Runfail::Error) { state.fingerprints([selector]) }
       end
       with_project do |other_root|
         File.symlink(File.join(other_root, "test/first_test.rb"), File.join(root, "test/linked_test.rb"))
-        assert_raises(RailsTestRerun::Error) { state.fingerprints(["test/linked_test.rb:4"]) }
+        assert_raises(Runfail::Error) { state.fingerprints(["test/linked_test.rb:4"]) }
       end
     end
   end
@@ -95,7 +95,7 @@ class UtilityTest < Minitest::Test
         assert_empty error
         assert_includes output, "parallel using 2"
         assert_equal 5, executed(root).length
-        state = RailsTestRerun::State.new(root)
+        state = Runfail::State.new(root)
         assert_equal 3, state.read.fetch("selectors").length
         assert_equal 0o600, File.stat(File.join(state.directory, "latest.log")).mode & 0o777
         File.delete(File.join(root, "executed.jsonl"))
@@ -126,24 +126,24 @@ class UtilityTest < Minitest::Test
         assert_equal 1, code, error + output
         assert_empty error
         assert_equal %w[test_error test_failure test_other_failure], executed(root).map { |row| row.fetch("name") }.sort
-        assert_equal 3, RailsTestRerun::State.new(root).read.fetch("selectors").length
+        assert_equal 3, Runfail::State.new(root).read.fetch("selectors").length
       end
     end
   end
 
   def test_boot_failure_and_launch_failure_invalidate_previous_results
     with_project do |root|
-      state = RailsTestRerun::State.new(root)
+      state = Runfail::State.new(root)
       state.write("status" => "complete", "argv" => %w[bin/rails test], "selectors" => [], "fingerprints" => {})
       File.write(File.join(root, "bin/rails"), "#!/usr/bin/env ruby\nwarn 'boot failed'\nexit 2\n")
       code, output, error = invoke(root, "run", "--", "bin/rails", "test")
       assert_equal 2, code
       assert_includes output, "boot failed"
       assert_includes error, "summary"
-      assert_raises(RailsTestRerun::Error) { state.read }
+      assert_raises(Runfail::Error) { state.read }
       File.chmod(0o644, File.join(root, "bin/rails"))
       assert_equal 1, invoke(root, "run", "--", "bin/rails", "test").first
-      assert_raises(RailsTestRerun::Error) { state.read }
+      assert_raises(Runfail::Error) { state.read }
     end
   end
 
@@ -162,8 +162,8 @@ class UtilityTest < Minitest::Test
         File.write(File.join(root, "continue"), "") if chunk.include?("ready")
         super(chunk)
       end
-      state = RailsTestRerun::State.new(root)
-      assert_equal 0, RailsTestRerun::Recorder.new(state, output: output).run(RailsTestRerun::Command.new(%w[bin/rails test]))
+      state = Runfail::State.new(root)
+      assert_equal 0, Runfail::Recorder.new(state, output: output).run(Runfail::Command.new(%w[bin/rails test]))
       assert_includes output.string, "stderr captured"
       assert_equal output.string, File.read(File.join(state.directory, "latest.log"))
     end
@@ -176,11 +176,11 @@ class UtilityTest < Minitest::Test
           code, output, error = invoke(root, "run", "--", "bin/rails", "test", *flags)
           assert_equal 1, code, error + output
           assert_empty error
-          assert_equal 3, RailsTestRerun::State.new(root).read.fetch("selectors").length
+          assert_equal 3, Runfail::State.new(root).read.fetch("selectors").length
         end
         with_environment("FIXTURE_PASS" => "1") do
           assert_equal 0, invoke(root, "run", "--", "bin/rails", "test").first
-          assert_empty RailsTestRerun::State.new(root).read.fetch("selectors")
+          assert_empty Runfail::State.new(root).read.fetch("selectors")
         end
       end
     end
@@ -191,15 +191,15 @@ class UtilityTest < Minitest::Test
       with_environment("PARALLEL_WORKERS" => "1", "FIXTURE_PASS" => nil) do
         code, output, error = invoke(root, "run", "--", "bin/rails", "test")
         assert_equal 1, code, error + output
-        state = RailsTestRerun::State.new(root)
+        state = Runfail::State.new(root)
         selectors = state.read.fetch("selectors")
-        command = RailsTestRerun::Command.new(%w[bin/rails test -n old_filter -f])
+        command = Runfail::Command.new(%w[bin/rails test -n old_filter -f])
         batches = command.rerun_batches(selectors, limit: 1)
         assert_equal 3, batches.length
         File.delete(File.join(root, "executed.jsonl"))
         output = StringIO.new
         state.synchronize do
-          assert_equal 1, RailsTestRerun::Recorder.new(state, output: output).run(batches)
+          assert_equal 1, Runfail::Recorder.new(state, output: output).run(batches)
         end
         assert_equal 3, executed(root).length
         assert_equal selectors.sort, state.read.fetch("selectors").sort
@@ -225,7 +225,7 @@ class UtilityTest < Minitest::Test
         assert_equal 143, Timeout.timeout(10) { process.value.exitstatus }
         assert File.exist?(File.join(root, "terminated"))
         assert_includes error.read, "interrupted"
-        assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(root).read }
+        assert_raises(Runfail::Error) { Runfail::State.new(root).read }
       ensure
         Process.kill("TERM", process.pid) if process.alive?
       end
@@ -247,7 +247,7 @@ class UtilityTest < Minitest::Test
       code, _, error = invoke(root, "run", "--", "bin/rails", "test")
       assert_equal 1, code
       assert_includes error, "changed during"
-      assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(root).read }
+      assert_raises(Runfail::Error) { Runfail::State.new(root).read }
     end
   end
 
@@ -266,7 +266,7 @@ class UtilityTest < Minitest::Test
           code, output, error = invoke(root, "run", "--", "bin/rails", "test", "test/first_test.rb", *flags)
           assert_equal 1, code, error + output
           assert_empty error
-          assert_equal 1, RailsTestRerun::State.new(root).read.fetch("selectors").length
+          assert_equal 1, Runfail::State.new(root).read.fetch("selectors").length
         end
       end
     end

@@ -1,4 +1,4 @@
-module RailsTestRerun
+module Runfail
   module Plugin
     class << self
       attr_reader :session
@@ -16,7 +16,7 @@ module RailsTestRerun
 
     module Completion
       def run_all_suites(*arguments)
-        super.tap { RailsTestRerun::Plugin.session.suites_finished = true }
+        super.tap { Runfail::Plugin.session.suites_finished = true }
       end
     end
   end

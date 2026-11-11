@@ -1,4 +1,4 @@
-module RailsTestRerun
+module Runfail
   class Recorder
     def initialize(state, output: $stdout)
       @state = state

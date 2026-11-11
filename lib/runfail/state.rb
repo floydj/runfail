@@ -1,10 +1,10 @@
-module RailsTestRerun
+module Runfail
   class State
     attr_reader :root, :directory
 
     def initialize(root)
       @root = root
-      @directory = File.join(root, "tmp", "rails-test-rerun")
+      @directory = File.join(root, "tmp", "runfail")
       FileUtils.mkdir_p(directory, mode: 0o700)
       raise Error, "Capture directory must be inside this project, not a symlink." unless File.realpath(directory) == directory
 

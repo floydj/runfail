@@ -1,4 +1,4 @@
-module RailsTestRerun
+module Runfail
   class Command
     TASK = /\Atest(?::(?:all|system|models|controllers|helpers|jobs|mailers|mailboxes|integration|units|functionals|generators|channels))?\z/
 

@@ -2,4 +2,4 @@
 
 require "runfail"
 
-exit RailsTestRerun::CLI.new.run(ARGV)
+exit Runfail::CLI.new.run(ARGV)

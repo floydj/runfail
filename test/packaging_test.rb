@@ -6,7 +6,7 @@ class PackagingTest < Minitest::Test
 
   def test_installed_gem_can_record_and_rerun_in_another_rails_repository
     gem_root = File.expand_path("..", __dir__)
-    Dir.mktmpdir("rails-test-rerun-install-") do |destination|
+    Dir.mktmpdir("runfail-install-") do |destination|
       artifact = File.join(destination, "utility.gem")
       output, error, status = Open3.capture3(RbConfig.ruby, "-S", "gem", "build", "runfail.gemspec",
                                             "--output", artifact, chdir: gem_root)
@@ -30,15 +30,15 @@ class PackagingTest < Minitest::Test
           output, error, status = Open3.capture3(environment, "bin/rails", "test", chdir: root)
           assert_equal 1, status.exitstatus, output + error
           assert_empty error
-          assert_equal 3, RailsTestRerun::State.new(root).read.fetch("selectors").length
-          assert_equal "minitest", RailsTestRerun::State.new(root).read.fetch("source")
+          assert_equal 3, Runfail::State.new(root).read.fetch("selectors").length
+          assert_equal "minitest", Runfail::State.new(root).read.fetch("source")
           File.delete(File.join(root, "executed.jsonl"))
           output, error, status = Open3.capture3(environment, executable, chdir: root)
           assert_equal 1, status.exitstatus, output + error
           assert_empty error
           assert_equal %w[test_error test_failure test_other_failure], executed(root).map { |row| row.fetch("name") }.sort
           assert_equal ["2"], executed(root).map { |row| row.fetch("workers") }.uniq
-          assert_equal %w[-v -d], RailsTestRerun::State.new(root).read.fetch("argv").last(2)
+          assert_equal %w[-v -d], Runfail::State.new(root).read.fetch("argv").last(2)
           File.delete(File.join(root, "executed.jsonl"))
           output, error, status = Open3.capture3(environment.merge("FIXTURE_PASS" => "1"), executable, "--sequential",
                                                 chdir: root)

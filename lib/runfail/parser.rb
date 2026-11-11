@@ -1,4 +1,4 @@
-module RailsTestRerun
+module Runfail
   class Parser
     SUMMARY = /^(\d+) runs, \d+ assertions, (\d+) failures, (\d+) errors, (\d+) skips(?:, 0 warnings)?$/
     OUTCOME = /^\s*(?:\d+\) )?(Failure|Error|Skipped):$/

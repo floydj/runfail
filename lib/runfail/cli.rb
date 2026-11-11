@@ -1,4 +1,4 @@
-module RailsTestRerun
+module Runfail
   class CLI
     def initialize(directory: Dir.pwd, output: $stdout, error: $stderr)
       @directory = directory

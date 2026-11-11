@@ -40,7 +40,7 @@ The gem has no dependency on TeamSite application code. The target application
 provides Rails and Minitest. `bundle exec runfail` also works without a separate
 global installation when the gem is available through the project's bundle.
 Installing the packaged gem provides bare `runfail` on your gem executable PATH.
-Version 0.2 replaces the earlier `rerunner` and `rails-test-rerun` executables.
+Version 0.2 uses `runfail` as its executable.
 
 ## Usage
 
@@ -98,8 +98,7 @@ run; subsequent reruns include only its remaining failures. A completed passing
 run clears earlier failures, including when some tests were skipped.
 Interrupted or fail-fast automatic runs are not published as completed captures.
 
-Private local state lives in `tmp/rails-test-rerun/`. This existing path is
-retained so renaming the gem does not discard earlier captures:
+Private local state lives in `tmp/runfail/`:
 
 - `latest.log`: combined output from the latest command-managed run, if any.
   Plain plugin-recorded runs do not save a terminal transcript.

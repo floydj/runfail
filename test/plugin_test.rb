@@ -16,7 +16,7 @@ class PluginTest < Minitest::Test
       assert_equal 1, status.exitstatus, output + error
       assert_empty error
       assert_includes output, "parallel using 2"
-      state = RailsTestRerun::State.new(root)
+      state = Runfail::State.new(root)
       data = state.read
       assert_equal "minitest", data.fetch("source")
       assert_equal 5, data.fetch("runs")
@@ -39,7 +39,7 @@ class PluginTest < Minitest::Test
     with_plugin_project do |root|
       output, error, status = plain_test(root, "-v", "-d")
       assert_equal 1, status.exitstatus, output + error
-      state = RailsTestRerun::State.new(root)
+      state = Runfail::State.new(root)
       File.write(File.join(state.directory, "latest.log"), "old wrapper output")
       output, error, status = plain_test(root, environment: { "FIXTURE_PASS" => "1" })
       assert status.success?, output + error
@@ -58,7 +58,7 @@ class PluginTest < Minitest::Test
       assert_operator status.exitstatus, :>, 0, output + error
       assert_includes error, "fixture boot error"
       assert_includes error, "before results were reported"
-      assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(root).read }
+      assert_raises(Runfail::Error) { Runfail::State.new(root).read }
     end
   end
 
@@ -74,13 +74,13 @@ class PluginTest < Minitest::Test
       output, error, status = plain_test(root, "test/interrupt_test.rb", environment: { "PARALLEL_WORKERS" => "1" })
       assert_operator status.exitstatus, :>, 0, output + error
       assert_includes error, "did not complete normally"
-      assert_raises(RailsTestRerun::Error) { RailsTestRerun::State.new(root).read }
+      assert_raises(Runfail::Error) { Runfail::State.new(root).read }
     end
   end
 
   def test_existing_capture_lock_blocks_a_plain_run_without_overwriting_state
     with_plugin_project do |root|
-      state = RailsTestRerun::State.new(root)
+      state = Runfail::State.new(root)
       state.write("status" => "running", "marker" => "existing capture")
       state.synchronize do
         output, error, status = plain_test(root)
@@ -100,7 +100,7 @@ class PluginTest < Minitest::Test
       end
       assert status.success?, output + error
       assert_includes output, "not a test run"
-      assert_empty Dir.glob(File.join(root, "tmp/rails-test-rerun/latest.json"))
+      assert_empty Dir.glob(File.join(root, "tmp/runfail/latest.json"))
     end
   end
 
@@ -124,7 +124,7 @@ class PluginTest < Minitest::Test
       assert_equal 1, code, error + output
       assert_empty error
       assert_equal 3, executed(root).length
-      assert_equal 3, RailsTestRerun::State.new(root).read.fetch("selectors").length
+      assert_equal 3, Runfail::State.new(root).read.fetch("selectors").length
     end
   end
 end

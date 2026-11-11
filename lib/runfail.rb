@@ -6,7 +6,7 @@ require "pathname"
 require "shellwords"
 require "tempfile"
 
-module RailsTestRerun
+module Runfail
   class Error < StandardError
     attr_reader :exit_status
 
@@ -17,8 +17,8 @@ module RailsTestRerun
   end
 end
 
-require_relative "rails_test_rerun/command"
-require_relative "rails_test_rerun/parser"
-require_relative "rails_test_rerun/state"
-require_relative "rails_test_rerun/recorder"
-require_relative "rails_test_rerun/cli"
+require_relative "runfail/command"
+require_relative "runfail/parser"
+require_relative "runfail/state"
+require_relative "runfail/recorder"
+require_relative "runfail/cli"

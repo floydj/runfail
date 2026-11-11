@@ -8,7 +8,7 @@ require_relative "../lib/runfail"
 
 module FixtureProject
   def with_project
-    Dir.mktmpdir("rails-test-rerun-") do |root|
+    Dir.mktmpdir("runfail-") do |root|
       FileUtils.mkdir_p(File.join(root, "bin"))
       FileUtils.mkdir_p(File.join(root, "test"))
       FileUtils.mkdir_p(File.join(root, "config"))
@@ -75,7 +75,7 @@ module FixtureProject
   def invoke(root, *arguments)
     output = StringIO.new
     error = StringIO.new
-    code = RailsTestRerun::CLI.new(directory: root, output: output, error: error).run(arguments)
+    code = Runfail::CLI.new(directory: root, output: output, error: error).run(arguments)
     [code, output.string, error.string]
   end
 
